@@ -10,21 +10,17 @@ export default function MyBookingsPage() {
           <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent">
             Your travel account
           </p>
-
           <h1 className="mt-3 text-4xl font-extrabold text-primary sm:text-5xl">
             My bookings
           </h1>
-
           <p className="mt-4 max-w-2xl text-base leading-8 text-muted-foreground">
-            Your real reservations and payment statuses appear here.
+            Every reservation shown here is loaded from your real account.
           </p>
         </SiteContainer>
       </section>
 
       <SiteContainer className="py-10 sm:py-12 lg:py-16">
-        <AccountGate>
-          <BookingHistory />
-        </AccountGate>
+        <AccountGate>{() => <BookingHistory />}</AccountGate>
       </SiteContainer>
     </main>
   );

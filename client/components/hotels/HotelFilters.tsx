@@ -1,14 +1,17 @@
 export type HotelFilterValues = {
   city: string;
-  type: string;
-  rating: string;
+  tier: string;
+  guests: string;
   budget: string;
 };
 
 type HotelFiltersProps = {
   filters: HotelFilterValues;
   resultCount: number;
-  onChange: (name: keyof HotelFilterValues, value: string) => void;
+  onChange: (
+    name: keyof HotelFilterValues,
+    value: string,
+  ) => void;
   onClear: () => void;
 };
 
@@ -22,7 +25,9 @@ export default function HotelFilters({
     <aside className="h-fit border border-border bg-background p-5 lg:sticky lg:top-24">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-extrabold text-primary">Filter stays</h2>
+          <h2 className="text-lg font-extrabold text-primary">
+            Filter stays
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {resultCount} stays available
           </p>
@@ -55,38 +60,40 @@ export default function HotelFilters({
         />
 
         <FilterSelect
-          label="Stay type"
-          value={filters.type}
-          onChange={(value) => onChange("type", value)}
+          label="Property tier"
+          value={filters.tier}
+          onChange={(value) => onChange("tier", value)}
           options={[
-            ["", "All stay types"],
-            ["Apartment hotel", "Apartment hotel"],
-            ["Villa", "Villa"],
-            ["Serviced lodge", "Serviced lodge"],
+            ["", "All tiers"],
+            ["standard", "Standard"],
+            ["premium", "Premium"],
+            ["luxury", "Luxury"],
+            ["signature", "Signature"],
           ]}
         />
 
         <FilterSelect
-          label="Guest rating"
-          value={filters.rating}
-          onChange={(value) => onChange("rating", value)}
+          label="Guests"
+          value={filters.guests}
+          onChange={(value) => onChange("guests", value)}
           options={[
-            ["", "Any rating"],
-            ["4.7", "4.7 and above"],
-            ["4.8", "4.8 and above"],
-            ["4.9", "4.9 and above"],
+            ["", "Any guest capacity"],
+            ["1", "1+ guest"],
+            ["2", "2+ guests"],
+            ["4", "4+ guests"],
+            ["6", "6+ guests"],
           ]}
         />
 
         <FilterSelect
-          label="Stay budget"
+          label="Nightly rate"
           value={filters.budget}
           onChange={(value) => onChange("budget", value)}
           options={[
-            ["", "Any budget"],
-            ["under-30000", "Under $30,000"],
-            ["30000-35000", "$30,000 to $35,000"],
-            ["over-35000", "Over $35,000"],
+            ["", "Any nightly rate"],
+            ["under-3000", "Under $3,000"],
+            ["3000-5000", "$3,000 to $5,000"],
+            ["over-5000", "Over $5,000"],
           ]}
         />
       </div>
@@ -109,7 +116,9 @@ function FilterSelect({
 }: FilterSelectProps) {
   return (
     <label className="block">
-      <span className="text-sm font-bold text-primary">{label}</span>
+      <span className="text-sm font-bold text-primary">
+        {label}
+      </span>
 
       <select
         value={value}

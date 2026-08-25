@@ -9,15 +9,15 @@ export default function FavoritesPage() {
         <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent">
           Your travel account
         </p>
-
         <h1 className="mt-3 text-4xl font-extrabold text-primary">
           Saved stays
         </h1>
+        <p className="mt-4 max-w-2xl text-muted-foreground">
+          These properties are stored against your actual account.
+        </p>
 
         <div className="mt-10">
-          <AccountGate>
-            <FavoritesList />
-          </AccountGate>
+          <AccountGate>{() => <FavoritesList />}</AccountGate>
         </div>
       </SiteContainer>
     </main>

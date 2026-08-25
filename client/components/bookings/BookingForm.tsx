@@ -1,85 +1,250 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import type { Hotel } from "@/lib/home-data";
-import BookingSummary from "@/components/bookings/BookingSummary";
-import DateRangePicker from "@/components/bookings/DateRangePicker";
+import { type FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  createBooking,
+  getBookingQuote,
+  getPaymentMethods,
+} from "@/lib/account-api";
+import { ApiError, formatUsd } from "@/lib/api";
+import { getStoredUser } from "@/lib/auth";
+import type {
+  BookingQuote,
+  PaymentMethod,
+} from "@/types/booking";
+import type { PublicProperty } from "@/types/property";
 
 type BookingFormProps = {
-  hotel: Hotel;
+  property: PublicProperty;
+  unitKey: string;
+  initialCheckInDate?: string;
+  initialCheckOutDate?: string;
+  initialGuestCount?: number;
 };
 
-export default function BookingForm({ hotel }: BookingFormProps) {
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState("2 guests");
-  const [isSubmitted, setIsSubmitted] = useState(false);
+export default function BookingForm({
+  property,
+  unitKey,
+  initialCheckInDate = "",
+  initialCheckOutDate = "",
+  initialGuestCount = 1,
+}: BookingFormProps) {
+  const router = useRouter();
+  const user = getStoredUser();
 
-  const nights = useMemo(() => {
-    if (!checkIn || !checkOut) {
-      return 4;
+  const [checkInDate, setCheckInDate] = useState(initialCheckInDate);
+  const [checkOutDate, setCheckOutDate] = useState(initialCheckOutDate);
+  const [guestCount, setGuestCount] = useState(initialGuestCount);
+  const [paymentMethodId, setPaymentMethodId] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [quote, setQuote] = useState<BookingQuote | null>(null);
+  const [message, setMessage] = useState("");
+  const [isLoadingQuote, setIsLoadingQuote] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const maxGuests = property.maxGuests ?? 1;
+  const today = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    if (!checkInDate || !checkOutDate) {
+      setQuote(null);
+      return;
     }
 
-    const startDate = new Date(`${checkIn}T00:00:00`);
-    const endDate = new Date(`${checkOut}T00:00:00`);
-    const difference = endDate.getTime() - startDate.getTime();
-    const calculatedNights = Math.ceil(difference / 86_400_000);
+    let active = true;
 
-    return calculatedNights > 0 ? calculatedNights : 1;
-  }, [checkIn, checkOut]);
+    async function loadQuote() {
+      try {
+        setIsLoadingQuote(true);
+        setMessage("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        const result = await getBookingQuote({
+          propertyId: property.id,
+          propertyKind: property.kind,
+          unitKey,
+          checkInDate,
+          checkOutDate,
+          guestCount,
+        });
+
+        if (active) {
+          setQuote(result);
+        }
+      } catch (error) {
+        if (active) {
+          setQuote(null);
+          setMessage(
+            error instanceof ApiError
+              ? error.message
+              : "Unable to calculate your booking price.",
+          );
+        }
+      } finally {
+        if (active) {
+          setIsLoadingQuote(false);
+        }
+      }
+    }
+
+    void loadQuote();
+
+    return () => {
+      active = false;
+    };
+  }, [
+    checkInDate,
+    checkOutDate,
+    guestCount,
+    property.id,
+    property.kind,
+    unitKey,
+  ]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPaymentMethods() {
+      try {
+        const methods = await getPaymentMethods();
+
+        if (!active) return;
+
+        setPaymentMethods(methods);
+        setPaymentMethodId(methods[0]?._id ?? "");
+      } catch (error) {
+        if (!active) return;
+
+        setMessage(
+          error instanceof ApiError && error.status === 401
+            ? "Please sign in before continuing to payment."
+            : "Unable to load payment methods.",
+        );
+      }
+    }
+
+    void loadPaymentMethods();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitted(true);
+    setMessage("");
+
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
+
+    if (!quote || !paymentMethodId) {
+      setMessage(
+        "Choose valid dates and a payment method before continuing.",
+      );
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      setIsSubmitting(true);
+
+      const booking = await createBooking({
+        propertyId: property.id,
+        propertyKind: property.kind,
+        unitKey,
+        checkInDate,
+        checkOutDate,
+        guestCount,
+        paymentMethodId,
+        guest: {
+          firstName: String(formData.get("firstName") ?? "").trim(),
+          lastName: String(formData.get("lastName") ?? "").trim(),
+          email: String(formData.get("email") ?? "").trim(),
+          phone: String(formData.get("phone") ?? "").trim() || undefined,
+        },
+      });
+
+      router.push(`/bookings/${booking.bookingReference}`);
+    } catch (error) {
+      setMessage(
+        error instanceof ApiError
+          ? error.message
+          : "Unable to create your booking.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_23rem]">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={submit}
         className="border border-border bg-background p-6 sm:p-8"
       >
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-accent">
-            Complete your request
-          </p>
+        <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-accent">
+          Secure booking
+        </p>
 
-          <h1 className="mt-3 text-3xl font-extrabold text-primary sm:text-4xl">
-            Reserve your stay
-          </h1>
-
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-            Enter your stay details. You will review your booking and choose a
-            payment method before anything is confirmed.
-          </p>
-        </div>
+        <h1 className="mt-3 text-3xl font-extrabold text-primary sm:text-4xl">
+          Reserve {property.name}
+        </h1>
 
         <section className="mt-8 border-t border-border pt-8">
-          <h2 className="text-xl font-extrabold text-primary">Stay details</h2>
+          <h2 className="text-xl font-extrabold text-primary">
+            Stay details
+          </h2>
 
-          <div className="mt-5">
-            <DateRangePicker
-              checkIn={checkIn}
-              checkOut={checkOut}
-              onCheckInChange={setCheckIn}
-              onCheckOutChange={setCheckOut}
-            />
+          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <label>
+              <span className="text-sm font-bold text-primary">
+                Check-in
+              </span>
+              <input
+                type="date"
+                required
+                min={today}
+                value={checkInDate}
+                onChange={(event) => setCheckInDate(event.target.value)}
+                className="mt-2 h-12 w-full border border-border bg-surface px-4 font-semibold text-primary outline-none focus:border-accent"
+              />
+            </label>
+
+            <label>
+              <span className="text-sm font-bold text-primary">
+                Check-out
+              </span>
+              <input
+                type="date"
+                required
+                min={checkInDate || today}
+                value={checkOutDate}
+                onChange={(event) => setCheckOutDate(event.target.value)}
+                className="mt-2 h-12 w-full border border-border bg-surface px-4 font-semibold text-primary outline-none focus:border-accent"
+              />
+            </label>
           </div>
 
           <label className="mt-5 block">
             <span className="text-sm font-bold text-primary">Guests</span>
-
             <select
-              value={guests}
-              onChange={(event) => setGuests(event.target.value)}
-              className="mt-2 h-12 w-full border border-border bg-surface px-4 text-sm font-semibold text-primary outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              value={guestCount}
+              onChange={(event) =>
+                setGuestCount(Number(event.target.value))
+              }
+              className="mt-2 h-12 w-full border border-border bg-surface px-4 font-semibold text-primary outline-none focus:border-accent"
             >
-              <option>1 guest</option>
-              <option>2 guests</option>
-              <option>3 guests</option>
-              <option>4 guests</option>
-              <option>5 guests</option>
-              <option>6+ guests</option>
+              {Array.from(
+                { length: Math.max(maxGuests, 1) },
+                (_, index) => index + 1,
+              ).map((count) => (
+                <option key={count} value={count}>
+                  {count} guest{count === 1 ? "" : "s"}
+                </option>
+              ))}
             </select>
           </label>
         </section>
@@ -90,97 +255,165 @@ export default function BookingForm({ hotel }: BookingFormProps) {
           </h2>
 
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            <FormField
+            <Field
               id="firstName"
               label="First name"
-              placeholder="Your first name"
+              defaultValue={user?.firstName}
             />
-
-            <FormField
+            <Field
               id="lastName"
               label="Last name"
-              placeholder="Your last name"
+              defaultValue={user?.lastName}
             />
-          </div>
-
-          <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            <FormField
+            <Field
               id="email"
               label="Email address"
               type="email"
-              placeholder="you@example.com"
+              defaultValue={user?.email}
             />
-
-            <FormField
-              id="phone"
-              label="Phone number"
-              type="tel"
-              placeholder="+34 000 000 000"
-            />
+            <Field id="phone" label="Phone number" type="tel" />
           </div>
-
-          <label className="mt-5 block">
-            <span className="text-sm font-bold text-primary">
-              Special requests
-            </span>
-
-            <textarea
-              name="specialRequests"
-              rows={5}
-              placeholder="Optional: arrival time, accessibility needs, or anything your host should know."
-              className="mt-2 w-full resize-y border border-border bg-surface px-4 py-3 text-sm font-medium text-primary outline-none transition placeholder:text-muted-foreground focus:border-accent focus:ring-2 focus:ring-accent/20"
-            />
-          </label>
         </section>
 
-        {isSubmitted ? (
-          <div
-            role="status"
-            className="mt-8 border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-800"
-          >
-            Your booking request is ready. The next step will be payment
-            selection when we connect the backend.
+        <section className="mt-8 border-t border-border pt-8">
+          <h2 className="text-xl font-extrabold text-primary">
+            Payment method
+          </h2>
+
+          <div className="mt-5 grid gap-3">
+            {paymentMethods.map((method) => (
+              <label
+                key={method._id}
+                className="flex cursor-pointer gap-3 border border-border bg-surface p-4"
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  checked={paymentMethodId === method._id}
+                  onChange={() => setPaymentMethodId(method._id)}
+                />
+                <span>
+                  <span className="block font-extrabold text-primary">
+                    {method.displayName}
+                  </span>
+                  <span className="mt-1 block text-sm text-muted-foreground">
+                    {method.currency} · {method.type.replace("_", " ")}
+                  </span>
+                </span>
+              </label>
+            ))}
           </div>
+        </section>
+
+        {message ? (
+          <p className="mt-7 border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+            {message}
+          </p>
         ) : null}
 
         <button
           type="submit"
-          className="mt-8 h-12 w-full rounded-full bg-accent px-6 text-sm font-semibold text-white transition hover:bg-accent-dark sm:w-auto"
+          disabled={isSubmitting || isLoadingQuote || !quote}
+          className="mt-8 h-12 rounded-full bg-accent px-6 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Continue to payment
+          {isSubmitting
+            ? "Creating booking…"
+            : "Create payment-pending booking"}
         </button>
       </form>
 
-      <BookingSummary hotel={hotel} nights={nights} guests={guests} />
+      <aside className="h-fit border border-border bg-background p-5 shadow-lg lg:sticky lg:top-24">
+        <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-accent">
+          Booking summary
+        </p>
+
+        <h2 className="mt-3 text-xl font-extrabold text-primary">
+          {property.name}
+        </h2>
+
+        <p className="mt-1 text-sm text-muted-foreground">
+          {property.address.city}, {property.address.country}
+        </p>
+
+        {isLoadingQuote ? (
+          <p className="mt-7 text-sm text-muted-foreground">
+            Calculating platform price…
+          </p>
+        ) : quote ? (
+          <div className="mt-7 space-y-4 border-y border-border py-5 text-sm">
+            <SummaryRow
+              label="Length of stay"
+              value={`${quote.quote.nights} nights`}
+            />
+            <SummaryRow
+              label="Nightly platform rate"
+              value={formatUsd(quote.quote.nightlyRateCents)}
+            />
+            <SummaryRow
+              label="Accommodation subtotal"
+              value={formatUsd(
+                quote.quote.accommodationSubtotalCents,
+              )}
+            />
+            <div className="flex items-end justify-between gap-4 pt-3">
+              <span className="font-bold text-primary">Total</span>
+              <span className="text-xl font-extrabold text-primary">
+                {formatUsd(quote.quote.totalCents)}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-7 text-sm text-muted-foreground">
+            Select valid check-in and check-out dates to receive your quote.
+          </p>
+        )}
+
+        <p className="mt-5 text-xs leading-5 text-muted-foreground">
+          The booking remains pending until you submit a payment reference and
+          an administrator approves it.
+        </p>
+      </aside>
     </div>
   );
 }
 
-type FormFieldProps = {
-  id: string;
-  label: string;
-  placeholder: string;
-  type?: "text" | "email" | "tel";
-};
-
-function FormField({
+function Field({
   id,
   label,
-  placeholder,
   type = "text",
-}: FormFieldProps) {
+  defaultValue,
+}: {
+  id: string;
+  label: string;
+  type?: "text" | "email" | "tel";
+  defaultValue?: string;
+}) {
   return (
-    <label className="block">
+    <label>
       <span className="text-sm font-bold text-primary">{label}</span>
-
       <input
         id={id}
         name={id}
         type={type}
-        required
-        placeholder={placeholder}
-        className="mt-2 h-12 w-full border border-border bg-surface px-4 text-sm font-medium text-primary outline-none transition placeholder:text-muted-foreground focus:border-accent focus:ring-2 focus:ring-accent/20"
+        required={id !== "phone"}
+        defaultValue={defaultValue}
+        className="mt-2 h-12 w-full border border-border bg-surface px-4 font-medium text-primary outline-none focus:border-accent"
       />
     </label>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-bold text-primary">{value}</span>
+    </div>
   );
 }

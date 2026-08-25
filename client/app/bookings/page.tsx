@@ -1,37 +1,51 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BookingForm from "@/components/bookings/BookingForm";
 import SiteContainer from "@/components/ui/SiteContainer";
-import { apartments, hotels } from "@/lib/home-data";
+import {
+  getApartmentDetail,
+  getHotelDetail,
+} from "@/lib/api";
 
-export const metadata: Metadata = {
-  title: "Reserve Your Stay | Top Rated Apartment Hotels",
-  description: "Review and reserve your selected European stay.",
-};
-
-type BookingPageProps = {
+type Props = {
   searchParams: Promise<{
-    hotel?: string;
+    propertyId?: string;
+    kind?: "hotel" | "apartment";
+    unitKey?: string;
+    checkInDate?: string;
+    checkOutDate?: string;
+    guests?: string;
   }>;
 };
 
-export default async function BookingPage({
-  searchParams,
-}: BookingPageProps) {
-  const { hotel: propertyId } = await searchParams;
+export default async function BookingPage({ searchParams }: Props) {
+  const values = await searchParams;
 
-  const property = propertyId
-    ? [...hotels, ...apartments].find((item) => item.id === propertyId)
-    : hotels[0];
-
-  if (!property) {
+  if (
+    !values.propertyId ||
+    (values.kind !== "hotel" && values.kind !== "apartment")
+  ) {
     notFound();
   }
+
+  const property =
+    values.kind === "hotel"
+      ? await getHotelDetail(values.propertyId)
+      : await getApartmentDetail(values.propertyId);
 
   return (
     <main className="min-h-screen bg-surface pt-20">
       <SiteContainer className="py-10 sm:py-12 lg:py-16">
-        <BookingForm hotel={property} />
+        <BookingForm
+          property={property}
+          unitKey={values.unitKey ?? "default"}
+          initialCheckInDate={values.checkInDate}
+          initialCheckOutDate={values.checkOutDate}
+          initialGuestCount={
+            Number.isFinite(Number(values.guests))
+              ? Number(values.guests)
+              : 1
+          }
+        />
       </SiteContainer>
     </main>
   );

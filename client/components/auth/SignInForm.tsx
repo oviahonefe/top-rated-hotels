@@ -1,23 +1,44 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ApiError } from "@/lib/api";
+import { authApi } from "@/lib/auth";
 
 export default function SignInForm() {
+  const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage(
-      "Sign-in will connect to the secure authentication API when we build the backend.",
-    );
+    setMessage("");
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      setIsSubmitting(true);
+      await authApi.login({ email, password });
+      router.replace("/account");
+      router.refresh();
+    } catch (error) {
+      setMessage(
+        error instanceof ApiError
+          ? error.message
+          : "Unable to sign in. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
       <label className="block">
         <span className="text-sm font-bold text-primary">Email address</span>
-
         <input
           type="email"
           name="email"
@@ -36,7 +57,7 @@ export default function SignInForm() {
 
           <button
             type="button"
-            onClick={() => setIsPasswordVisible((current) => !current)}
+            onClick={() => setIsPasswordVisible((value) => !value)}
             className="text-sm font-bold text-accent transition hover:text-accent-dark"
           >
             {isPasswordVisible ? "Hide" : "Show"}
@@ -54,19 +75,10 @@ export default function SignInForm() {
         />
       </div>
 
-      <label className="flex items-center gap-3 text-sm font-semibold text-muted-foreground">
-        <input
-          type="checkbox"
-          name="remember"
-          className="h-4 w-4 accent-[#f1802b]"
-        />
-        Keep me signed in
-      </label>
-
       {message ? (
         <p
-          role="status"
-          className="border border-accent/30 bg-accent/5 px-4 py-3 text-sm font-semibold text-primary"
+          role="alert"
+          className="border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
         >
           {message}
         </p>
@@ -74,9 +86,10 @@ export default function SignInForm() {
 
       <button
         type="submit"
-        className="h-12 rounded-full bg-accent px-6 text-sm font-semibold text-white transition hover:bg-accent-dark"
+        disabled={isSubmitting}
+        className="h-12 rounded-full bg-accent px-6 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Sign in
+        {isSubmitting ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );

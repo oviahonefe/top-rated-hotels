@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import TopRatedHotelsLogo from "@/components/brand/TopRatedHotelsLogo";
+import { AUTH_CHANGED_EVENT } from "@/lib/api";
+import {
+  authApi,
+  getStoredUser,
+  hasStoredSession,
+} from "@/lib/auth";
+import type { AuthUser } from "@/types/auth";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -14,50 +21,51 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname() ?? "/";
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const router = useRouter();
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 12);
+    function updateUser() {
+      setUser(getStoredUser());
+    }
 
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
+    updateUser();
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    if (hasStoredSession()) {
+      void authApi.me()
+        .then((currentUser) => setUser(currentUser))
+        .catch(() => setUser(null));
+    }
+
+    window.addEventListener(AUTH_CHANGED_EVENT, updateUser);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, updateUser);
+    };
   }, []);
 
   useEffect(() => {
-    setIsMenuOpen(false);
+    setMenuOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-      }
-    };
+  async function signOut() {
+    await authApi.logout();
+    setUser(null);
+    router.push("/");
+    router.refresh();
+  }
 
-    window.addEventListener("keydown", handleEscape);
-
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, []);
-
-  const isActive = (href: string) => {
-    return href === "/" ? pathname === "/" : pathname.startsWith(href);
-  };
+  function active(href: string) {
+    return href === "/"
+      ? pathname === "/"
+      : pathname.startsWith(href);
+  }
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 border-b transition duration-200 ${
-        isScrolled || isMenuOpen
-          ? "border-border bg-background/95 shadow-[0_10px_30px_rgb(17_24_39_/_8%)] backdrop-blur-xl"
-          : "border-transparent bg-background/85 backdrop-blur-md"
-      }`}
-    >
-      <nav
-        aria-label="Main navigation"
-        className="mx-auto flex h-20 max-w-[82rem] items-center justify-between px-4 sm:px-6 lg:px-8"
-      >
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur-xl">
+      <nav className="mx-auto flex h-20 max-w-[82rem] items-center justify-between px-4 sm:px-6 lg:px-8">
         <TopRatedHotelsLogo />
 
         <ul className="hidden items-center gap-7 xl:flex">
@@ -65,11 +73,10 @@ export default function Navbar() {
             <li key={link.href}>
               <Link
                 href={link.href}
-                aria-current={isActive(link.href) ? "page" : undefined}
-                className={`relative text-sm font-semibold transition after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:origin-left after:rounded-full after:bg-accent after:transition-transform ${
-                  isActive(link.href)
-                    ? "text-primary after:scale-x-100"
-                    : "text-secondary after:scale-x-0 hover:text-primary hover:after:scale-x-100"
+                className={`text-sm font-bold transition ${
+                  active(link.href)
+                    ? "text-accent"
+                    : "text-secondary hover:text-primary"
                 }`}
               >
                 {link.label}
@@ -79,92 +86,137 @@ export default function Navbar() {
         </ul>
 
         <div className="hidden items-center gap-4 xl:flex">
-          <Link
-            href="/auth/login"
-            className="text-sm font-semibold text-primary transition hover:text-accent"
-          >
-            Sign in
-          </Link>
+          {user ? (
+            <>
+              <Link
+                href="/account"
+                className="flex items-center gap-3 rounded-full border border-border bg-surface px-3 py-2"
+              >
+                {user.profileImageUrl ? (
+                  <img
+                    src={user.profileImageUrl}
+                    alt=""
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white">
+                    {user.firstName[0]}
+                    {user.lastName[0]}
+                  </span>
+                )}
 
-          <Link
-            href="/hotels"
-            className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dark"
-          >
-            Find a stay
-          </Link>
-        </div>
+                <span className="max-w-36 truncate text-sm font-bold text-primary">
+                  {user.firstName} {user.lastName}
+                </span>
+              </Link>
 
-        <button
-          type="button"
-          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-expanded={isMenuOpen}
-          onClick={() => setIsMenuOpen((current) => !current)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-primary shadow-sm xl:hidden"
-        >
-          <span className="relative h-4 w-5">
-            <span
-              className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-current transition ${
-                isMenuOpen ? "translate-y-[7px] rotate-45" : ""
-              }`}
-            />
-            <span
-              className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-current transition ${
-                isMenuOpen ? "opacity-0" : ""
-              }`}
-            />
-            <span
-              className={`absolute left-0 top-[14px] h-0.5 w-5 rounded-full bg-current transition ${
-                isMenuOpen ? "-translate-y-[7px] -rotate-45" : ""
-              }`}
-            />
-          </span>
-        </button>
-      </nav>
-
-      <div
-        className={`grid overflow-hidden border-t bg-background transition-[grid-template-rows] duration-200 xl:hidden ${
-          isMenuOpen
-            ? "grid-rows-[1fr] border-border"
-            : "grid-rows-[0fr] border-transparent"
-        }`}
-      >
-        <div className="min-h-0">
-          <div className="mx-auto w-full max-w-[72rem] px-4 py-5 sm:px-6 lg:px-8">
-            <ul className="flex flex-col gap-1">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={`block rounded-md px-3 py-3 text-base font-semibold transition ${
-                      isActive(link.href)
-                        ? "bg-surface text-primary"
-                        : "text-secondary hover:bg-surface hover:text-primary"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                className="text-sm font-bold text-secondary hover:text-red-700"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
               <Link
                 href="/auth/login"
-                className="rounded-full border border-primary px-4 py-3 text-center text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
+                className="text-sm font-bold text-primary hover:text-accent"
               >
                 Sign in
               </Link>
 
               <Link
                 href="/hotels"
-                className="rounded-full bg-accent px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-accent-dark"
+                className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white"
               >
                 Find a stay
               </Link>
-            </div>
+            </>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setMenuOpen((value) => !value)}
+          className="flex h-11 w-11 items-center justify-center border border-border xl:hidden"
+          aria-label="Toggle navigation"
+        >
+          <span className="text-xl">{menuOpen ? "×" : "☰"}</span>
+        </button>
+      </nav>
+
+      {menuOpen ? (
+        <div className="border-t border-border bg-background px-4 py-5 xl:hidden">
+          {user ? (
+            <Link
+              href="/account"
+              className="mb-5 block border border-border bg-surface p-4"
+            >
+              <p className="font-extrabold text-primary">
+                {user.firstName} {user.lastName}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Signed in as {user.email}
+              </p>
+            </Link>
+          ) : null}
+
+          <div className="grid gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`px-3 py-3 font-bold ${
+                  active(link.href)
+                    ? "bg-surface text-accent"
+                    : "text-primary"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {user ? (
+              <>
+                <Link
+                  href="/account"
+                  className="rounded-full border border-primary px-4 py-3 text-center text-sm font-bold text-primary"
+                >
+                  My account
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => void signOut()}
+                  className="rounded-full bg-primary px-4 py-3 text-sm font-bold text-white"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="rounded-full border border-primary px-4 py-3 text-center text-sm font-bold text-primary"
+                >
+                  Sign in
+                </Link>
+
+                <Link
+                  href="/hotels"
+                  className="rounded-full bg-accent px-4 py-3 text-center text-sm font-bold text-white"
+                >
+                  Find a stay
+                </Link>
+              </>
+            )}
           </div>
         </div>
-      </div>
+      ) : null}
     </header>
   );
 }

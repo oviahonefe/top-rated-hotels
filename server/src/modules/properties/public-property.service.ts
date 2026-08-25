@@ -6,9 +6,11 @@ import {
   HotelModel,
   type Hotel,
 } from "./hotel.model.js";
+import type {
+  PropertyImage,
+  RoomOption,
+} from "./property.types.js";
 import type { CatalogueQuery } from "./public-property.validation.js";
-import type { RoomOption } from "./property.types.js";
-
 
 type PublicPropertyKind = "hotel" | "apartment";
 
@@ -25,11 +27,7 @@ type PublicProperty = {
     region?: string;
   };
   featured: boolean;
-  images: Array<{
-    url: string;
-    alt: string;
-    isPrimary: boolean;
-  }>;
+  images: PropertyImage[];
   amenities: string[];
   starRating?: number;
   maxGuests?: number;
@@ -38,27 +36,28 @@ type PublicProperty = {
   fromNightlyRateCents: number;
 };
 
+type RoomWithId = RoomOption & {
+  _id?: unknown;
+};
+
 function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function getPrimaryImage<
-  T extends {
-    url: string;
-    alt: string;
-    isPrimary: boolean;
-  },
->(images: T[]) {
-  return images.find((image) => image.isPrimary) ?? images[0];
+function getActiveRooms(hotel: Hotel) {
+  return (hotel.rooms as RoomWithId[]).filter(
+    (room: RoomWithId) => room.isActive,
+  );
 }
 
-function mapHotel(hotel: Record<string, any>): PublicProperty {
-  const activeRooms = hotel.rooms.filter(
-    (room: RoomOption) => room.isActive,
-  );
+function mapHotel(
+  hotel: Hotel & { _id: unknown },
+): PublicProperty {
+  const activeRooms = getActiveRooms(hotel);
 
   const rates = activeRooms.map(
-    (room: RoomOption) => room.platformNightlyRateCents,
+    (room: RoomWithId) =>
+      room.platformNightlyRateCents,
   );
 
   return {
@@ -80,15 +79,16 @@ function mapHotel(hotel: Record<string, any>): PublicProperty {
     maxGuests: Math.max(
       0,
       ...activeRooms.map(
-        (room: RoomOption) => room.maxGuests,
+        (room: RoomWithId) => room.maxGuests,
       ),
     ),
-    fromNightlyRateCents: Math.min(...rates),
+    fromNightlyRateCents:
+      rates.length > 0 ? Math.min(...rates) : 0,
   };
 }
 
 function mapApartment(
-  apartment: Record<string, any>,
+  apartment: Apartment & { _id: unknown },
 ): PublicProperty {
   return {
     id: String(apartment._id),
@@ -167,6 +167,11 @@ export async function listPublicProperties(
 
   const hotelFilter: Record<string, unknown> = {
     ...baseFilter,
+    rooms: {
+      $elemMatch: {
+        isActive: true,
+      },
+    },
   };
 
   const apartmentFilter: Record<string, unknown> = {
@@ -177,7 +182,9 @@ export async function listPublicProperties(
     hotelFilter.rooms = {
       $elemMatch: {
         isActive: true,
-        maxGuests: { $gte: query.guests },
+        maxGuests: {
+          $gte: query.guests,
+        },
       },
     };
 
@@ -209,14 +216,21 @@ export async function listPublicProperties(
     ]);
 
   const properties = [
-    ...hotels.map((hotel) => mapHotel(hotel)),
+    ...hotels.map((hotel) =>
+      mapHotel(hotel as Hotel & { _id: unknown }),
+    ),
     ...apartments.map((apartment) =>
-      mapApartment(apartment),
+      mapApartment(apartment as Apartment & {
+        _id: unknown;
+      }),
     ),
   ]
     .sort((left, right) => {
       if (left.featured !== right.featured) {
-        return Number(right.featured) - Number(left.featured);
+        return (
+          Number(right.featured) -
+          Number(left.featured)
+        );
       }
 
       return left.name.localeCompare(right.name);
@@ -231,7 +245,10 @@ export async function listPublicProperties(
       page: query.page,
       limit: query.limit,
       total,
-      totalPages: Math.max(1, Math.ceil(total / query.limit)),
+      totalPages: Math.max(
+        1,
+        Math.ceil(total / query.limit),
+      ),
     },
   };
 }
@@ -242,9 +259,34 @@ export async function getPublicHotelBySlug(slug: string) {
     status: "published",
   }).lean();
 
-  return hotel
-    ? mapHotel(hotel)
-    : null;
+  if (!hotel) {
+    return null;
+  }
+
+  const typedHotel = hotel as Hotel & { _id: unknown };
+  const activeRooms = getActiveRooms(typedHotel);
+
+  if (activeRooms.length === 0) {
+    return null;
+  }
+
+  return {
+    ...mapHotel(typedHotel),
+    description: typedHotel.description,
+    rooms: activeRooms.map((room: RoomWithId) => ({
+      id: String(room._id),
+      name: room.name,
+      description: room.description,
+      maxGuests: room.maxGuests,
+      bedrooms: room.bedrooms,
+      bathrooms: room.bathrooms,
+      bedSummary: room.bedSummary,
+      amenities: room.amenities,
+      platformNightlyRateCents:
+        room.platformNightlyRateCents,
+      totalUnits: room.totalUnits,
+    })),
+  };
 }
 
 export async function getPublicApartmentBySlug(slug: string) {
@@ -253,9 +295,20 @@ export async function getPublicApartmentBySlug(slug: string) {
     status: "published",
   }).lean();
 
-  return apartment
-    ? mapApartment(apartment)
-    : null;
+  if (!apartment) {
+    return null;
+  }
+
+  const typedApartment = apartment as Apartment & {
+    _id: unknown;
+  };
+
+  return {
+    ...mapApartment(typedApartment),
+    description: typedApartment.description,
+    bedSummary: typedApartment.bedSummary,
+    totalUnits: typedApartment.totalUnits,
+  };
 }
 
 export async function getFeaturedProperties(limit = 8) {
