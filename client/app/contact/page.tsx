@@ -29,14 +29,14 @@ const helpTopics = [
 const contactOptions = [
   {
     title: "Guest support",
-    value: "support@topratedhotels.com",
-    href: "mailto:support@topratedhotels.com",
+    value: "support@topratedhotels.es",
+    href: "mailto:support@topratedhotels.es",
     description: "For booking questions, stay details, account support, and general guest enquiries.",
   },
   {
     title: "Property partnerships",
-    value: "partners@topratedhotels.com",
-    href: "mailto:partners@topratedhotels.com",
+    value: "support@topratedhotels.es",
+    href: "mailto:support@topratedhotels.es",
     description: "For property owners and managers interested in listing an apartment hotel, villa, or lodge.",
   },
   {

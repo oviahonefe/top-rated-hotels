@@ -14,7 +14,7 @@
   --secondary-foreground: #ffffff;
 
   --accent: #f1802b;
-  --accent-faoreground: #ffffff;
+  --accent-foreground: #ffffff;
   --accent-light: #ffa35c;
   --accent-dark: #c2661c;
 
@@ -117,5 +117,36 @@ h5 {
 @media (min-width: 1024px) {
   .container-page {
     padding-inline: 2rem;
+  }
+}
+.auth-visual-image {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  animation: authBackgroundDrift 18s ease-in-out infinite alternate;
+}
+
+.auth-visual-content {
+  animation: authContentFloat 7s ease-in-out infinite;
+}
+
+@keyframes authBackgroundDrift {
+  0% {
+    transform: scale(1.03) translate3d(-1.5%, -1%, 0);
+  }
+
+  100% {
+    transform: scale(1.12) translate3d(1.5%, 1%, 0);
+  }
+}
+
+@keyframes authContentFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
   }
 }

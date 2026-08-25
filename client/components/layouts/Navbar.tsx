@@ -72,7 +72,7 @@ export default function Navbar() {
           {navLinks.map((link) => (
             <li key={link.href}>
               <Link
-                href={link.href}
+                href={link.href} 
                 className={`text-sm font-bold transition ${
                   active(link.href)
                     ? "text-accent"
