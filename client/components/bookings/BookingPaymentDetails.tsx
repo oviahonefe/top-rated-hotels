@@ -32,6 +32,8 @@ export default function BookingPaymentDetails({
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [copiedValue, setCopiedValue] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -58,10 +60,28 @@ export default function BookingPaymentDetails({
     };
   }, [bookingReference]);
 
+  async function copyPaymentValue(value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedValue(value);
+
+      window.setTimeout(() => {
+        setCopiedValue("");
+      }, 1800);
+    } catch {
+      setMessage("Unable to copy automatically. Please select and copy it.");
+    }
+  }
+
   async function submitPayment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!booking) return;
+
+    if (!receipt) {
+      setMessage("Upload your payment receipt before confirming payment.");
+      return;
+    }
 
     const formData = new FormData(event.currentTarget);
     const transactionReference = String(
@@ -75,11 +95,15 @@ export default function BookingPaymentDetails({
 
       const updatedBooking = await submitBookingPayment(
         booking.bookingReference,
-        transactionReference,
-        note || undefined,
+        {
+          transactionReference,
+          receipt,
+          note: note || undefined,
+        },
       );
 
       setBooking(updatedBooking);
+      setReceipt(null);
       setMessage(
         "Payment reference submitted. An administrator will review it shortly.",
       );
@@ -162,9 +186,20 @@ export default function BookingPaymentDetails({
                 <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-muted-foreground">
                   {detail.label}
                 </p>
-                <p className="mt-2 break-all font-bold text-primary">
-                  {detail.value}
-                </p>
+
+                <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="break-all font-bold text-primary">
+                    {detail.value}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => void copyPaymentValue(detail.value)}
+                    className="shrink-0 rounded-full border border-primary px-3 py-1.5 text-xs font-bold text-primary transition hover:bg-primary hover:text-white"
+                  >
+                    {copiedValue === detail.value ? "Copied" : "Copy"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -193,6 +228,42 @@ export default function BookingPaymentDetails({
 
             <label className="mt-5 block">
               <span className="text-sm font-bold text-primary">
+                Payment receipt
+              </span>
+
+              <input
+                required
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    setReceipt(null);
+                    setMessage("Receipt must be 10 MB or smaller.");
+                    event.currentTarget.value = "";
+                    return;
+                  }
+
+                  setReceipt(file);
+                }}
+                className="mt-2 block w-full border border-border bg-surface px-3 py-3 text-sm text-primary file:mr-4 file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-bold file:text-white"
+              />
+
+              <span className="mt-2 block text-xs leading-5 text-muted-foreground">
+                Required. Upload a JPEG, PNG, WebP, or PDF payment receipt,
+                maximum 10 MB.
+              </span>
+
+              {receipt ? (
+                <span className="mt-2 block text-sm font-semibold text-emerald-700">
+                  Receipt selected: {receipt.name}
+                </span>
+              ) : null}
+            </label>
+
+            <label className="mt-5 block">
+              <span className="text-sm font-bold text-primary">
                 Optional note
               </span>
               <textarea
@@ -208,8 +279,8 @@ export default function BookingPaymentDetails({
               className="mt-6 h-12 rounded-full bg-accent px-6 text-sm font-semibold text-white disabled:opacity-60"
             >
               {submitting
-                ? "Submitting…"
-                : "Submit payment reference"}
+                ? "Submitting receipt…"
+                : "I have paid — submit receipt"}
             </button>
           </form>
         ) : (

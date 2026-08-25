@@ -17,7 +17,9 @@ export default function FavoritesPage() {
         </p>
 
         <div className="mt-10">
-          <AccountGate>{() => <FavoritesList />}</AccountGate>
+          <AccountGate>
+            <FavoritesList />
+          </AccountGate>
         </div>
       </SiteContainer>
     </main>

@@ -73,7 +73,7 @@ function InventoryContent() {
   const selectedUnitKey = propertyKind === "apartment" ? "default" : unitKey;
 
   async function loadProperties() {
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -116,7 +116,7 @@ function InventoryContent() {
       return;
     }
 
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -165,7 +165,7 @@ function InventoryContent() {
       return;
     }
 
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -225,7 +225,7 @@ function InventoryContent() {
       return;
     }
 
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");

@@ -138,3 +138,75 @@ export async function sendBookingCancelledEmail(
     );
   }
 }
+
+export async function sendPaymentSubmittedForReviewEmail(
+  booking: Booking,
+) {
+  const reviewRecipient =
+    env.BOOKING_REVIEW_EMAIL ?? env.SMTP_FROM_EMAIL;
+
+  const receiptUrl = booking.payment.receipt?.url;
+  const transactionReference =
+    booking.payment.transactionReference ?? "Not provided";
+
+  try {
+    await transporter.sendMail({
+      from: `"${env.SMTP_FROM_NAME}" <${env.SMTP_FROM_EMAIL}>`,
+      to: reviewRecipient,
+      subject: `Payment receipt submitted — ${booking.bookingReference}`,
+      text: [
+        "A guest payment is ready for review.",
+        `Booking reference: ${booking.bookingReference}`,
+        `Guest: ${booking.guest.firstName} ${booking.guest.lastName}`,
+        `Guest email: ${booking.guest.email}`,
+        `Property: ${booking.propertyName}`,
+        `Total: ${formatMoney(booking.price.totalCents)}`,
+        `Payment method: ${booking.payment.methodName}`,
+        `Transaction reference: ${transactionReference}`,
+        ...(receiptUrl ? [`Receipt: ${receiptUrl}`] : []),
+      ].join("\n"),
+      html: `
+        <main style="font-family:Arial,sans-serif;color:#172033;line-height:1.6">
+          <h1>Payment receipt ready for review</h1>
+          <p>A guest has submitted payment evidence for review.</p>
+
+          ${bookingSummary(booking)}
+
+          <p><strong>Guest:</strong> ${escapeHtml(
+            `${booking.guest.firstName} ${booking.guest.lastName}`,
+          )}</p>
+          <p><strong>Guest email:</strong> ${escapeHtml(
+            booking.guest.email,
+          )}</p>
+          <p><strong>Payment method:</strong> ${escapeHtml(
+            booking.payment.methodName,
+          )}</p>
+          <p><strong>Transaction reference:</strong> ${escapeHtml(
+            transactionReference,
+          )}</p>
+
+          ${
+            receiptUrl
+              ? `<p style="margin-top:24px">
+                  <a
+                    href="${escapeHtml(receiptUrl)}"
+                    style="display:inline-block;background:#18295d;color:#ffffff;padding:12px 18px;text-decoration:none;font-weight:bold"
+                  >
+                    Open payment receipt
+                  </a>
+                </p>`
+              : ""
+          }
+        </main>
+      `,
+    });
+  } catch (error) {
+    logger.error(
+      {
+        error,
+        bookingReference: booking.bookingReference,
+      },
+      "Unable to send payment-review notification email",
+    );
+  }
+}

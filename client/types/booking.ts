@@ -66,6 +66,12 @@ export type Booking = {
     }>;
     status: PaymentStatus;
     transactionReference?: string;
+    receipt?: {
+      url: string;
+      originalFilename: string;
+      mimeType: string;
+      uploadedAt: string;
+    };
   };
   paymentDueAt: string;
   status: BookingStatus;

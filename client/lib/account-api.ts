@@ -114,20 +114,30 @@ export function createBooking(input: {
 
 export function submitBookingPayment(
   bookingReference: string,
-  transactionReference: string,
-  note?: string,
+  input: {
+    transactionReference: string;
+    receipt: File;
+    note?: string;
+  },
 ) {
+  const formData = new FormData();
+
+  formData.append(
+    "transactionReference",
+    input.transactionReference,
+  );
+
+  formData.append("receipt", input.receipt);
+
+  if (input.note) {
+    formData.append("note", input.note);
+  }
+
   return apiRequest<Booking>(
     `/bookings/${encodeURIComponent(bookingReference)}/payment`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        transactionReference,
-        note,
-      }),
+      body: formData,
     },
   );
 }

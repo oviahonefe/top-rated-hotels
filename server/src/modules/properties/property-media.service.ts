@@ -132,6 +132,18 @@ export async function uploadPropertyImages(input: {
       uploaded.push(await uploadImage(file, folder));
     }
   } catch (error) {
+    const providerMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === "object" &&
+            error !== null &&
+            "message" in error &&
+            typeof error.message === "string"
+          ? error.message
+          : "Cloudinary rejected the image upload.";
+
+    console.error("Cloudinary property-image upload failed:", error);
+
     await Promise.allSettled(
       uploaded.map((image) =>
         cloudinary.uploader.destroy(image.publicId),
@@ -139,10 +151,8 @@ export async function uploadPropertyImages(input: {
     );
 
     throw new AppError(
-      error instanceof Error
-        ? error.message
-        : "Image upload failed.",
-      500,
+      `Cloudinary upload failed: ${providerMessage}`,
+      502,
     );
   }
 

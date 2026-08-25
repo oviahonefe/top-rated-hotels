@@ -24,7 +24,7 @@ function ApartmentsContent() {
   const [error, setError] = useState("");
 
   async function loadApartments() {
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -66,7 +66,7 @@ function ApartmentsContent() {
       return;
     }
 
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");

@@ -34,6 +34,7 @@ const environmentSchema = z.object({
   SMTP_PASS: z.string().min(1),
   SMTP_FROM_NAME: z.string().min(1).default("Top Rated Hotels"),
   SMTP_FROM_EMAIL: z.string().email(),
+  BOOKING_REVIEW_EMAIL: z.string().email().optional(),
 
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])

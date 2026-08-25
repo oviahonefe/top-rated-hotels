@@ -1,27 +1,34 @@
 "use client";
 
 import Image from "next/image";
-import { ChangeEvent, useState } from "react";
-import { apiFormRequest, apiRequest, ApiClientError } from "@/lib/api-client";
+import { type ChangeEvent, useState } from "react";
+import {
+  apiFormRequest,
+  apiRequest,
+  ApiClientError,
+} from "@/lib/api-client";
 import type { PropertyImage } from "@/lib/api-types";
 import { useAdminAuth } from "@/providers/AuthProvider";
 
-type HotelMediaManagerProps = {
-  propertyKind: "hotels" | "apartments";
-  hotelId: string;
-  hotelName: string;
+type PropertyKind = "hotels" | "apartments";
+
+type PropertyMediaManagerProps = {
+  propertyKind: PropertyKind;
+  propertyId: string;
+  propertyName: string;
   images: PropertyImage[];
   onImagesUpdated: (images: PropertyImage[]) => void;
 };
 
-export default function HotelMediaManager({
- propertyKind,
-  hotelId,
-  hotelName,
+export default function PropertyMediaManager({
+  propertyKind,
+  propertyId,
+  propertyName,
   images,
   onImagesUpdated,
-}: HotelMediaManagerProps) {
+}: PropertyMediaManagerProps) {
   const { authenticatedRequestToken } = useAdminAuth();
+
   const [altText, setAltText] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -30,7 +37,7 @@ export default function HotelMediaManager({
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
-    const availableSlots = 5 - images.length;
+    const availableSlots = Math.max(0, 5 - images.length);
 
     setErrorMessage("");
 
@@ -46,7 +53,7 @@ export default function HotelMediaManager({
   }
 
   async function uploadImages() {
-    if (selectedFiles.length === 0) {
+    if (!selectedFiles.length) {
       setErrorMessage("Select at least one JPEG, PNG, or WebP image.");
       return;
     }
@@ -58,11 +65,17 @@ export default function HotelMediaManager({
       const token = await authenticatedRequestToken();
       const formData = new FormData();
 
-      selectedFiles.forEach((file) => formData.append("images", file));
-      formData.append("altText", altText.trim() || `${hotelName} image`);
+      selectedFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      formData.append(
+        "altText",
+        altText.trim() || `${propertyName} image`,
+      );
 
       const updatedImages = await apiFormRequest<PropertyImage[]>(
-        `/admin/properties/${propertyKind}/${hotelId}/images`
+        `/admin/properties/${propertyKind}/${propertyId}/images`,
         formData,
         token,
       );
@@ -89,7 +102,7 @@ export default function HotelMediaManager({
       const token = await authenticatedRequestToken();
 
       const updatedImages = await apiRequest<PropertyImage[]>(
-        `/admin/properties/${propertyKind}/${hotelId}/images/primary`
+        `/admin/properties/${propertyKind}/${propertyId}/images/primary`,
         {
           method: "PATCH",
           token,
@@ -110,11 +123,7 @@ export default function HotelMediaManager({
   }
 
   async function deleteImage(publicId: string) {
-    const confirmed = window.confirm(
-      "Remove this image from the hotel and cloud storage?",
-    );
-
-    if (!confirmed) {
+    if (!window.confirm("Remove this image from the property?")) {
       return;
     }
 
@@ -125,7 +134,7 @@ export default function HotelMediaManager({
       const token = await authenticatedRequestToken();
 
       const updatedImages = await apiRequest<PropertyImage[]>(
-        `/admin/properties/${propertyKind}/${hotelId}/images`
+        `/admin/properties/${propertyKind}/${propertyId}/images`,
         {
           method: "DELETE",
           token,
@@ -151,8 +160,8 @@ export default function HotelMediaManager({
         <div>
           <h2 className="text-xl font-bold text-slate-950">Property images</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Upload up to five JPEG, PNG, or WebP images. The primary image is
-            shown first to guests.
+            Upload one to five JPEG, PNG, or WebP images. The primary image is
+            displayed first to guests.
           </p>
         </div>
 
@@ -161,7 +170,7 @@ export default function HotelMediaManager({
         </p>
       </div>
 
-      {images.length > 0 ? (
+      {images.length ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {images.map((image) => {
             const canManage = Boolean(image.publicId);
@@ -169,7 +178,7 @@ export default function HotelMediaManager({
 
             return (
               <article
-                key={image.publicId || image.url}
+                key={image.publicId ?? image.url}
                 className="overflow-hidden border border-slate-200 bg-slate-50"
               >
                 <div className="relative aspect-[4/3] bg-slate-100">
@@ -200,7 +209,7 @@ export default function HotelMediaManager({
                           type="button"
                           disabled={isWorking}
                           onClick={() => void setPrimaryImage(image.publicId!)}
-                          className="text-sm font-bold text-orange-600 transition hover:text-orange-700 disabled:opacity-50"
+                          className="text-sm font-bold text-orange-600 hover:text-orange-700 disabled:opacity-50"
                         >
                           Make primary
                         </button>
@@ -210,9 +219,9 @@ export default function HotelMediaManager({
                         type="button"
                         disabled={isWorking}
                         onClick={() => void deleteImage(image.publicId!)}
-                        className="text-sm font-bold text-red-600 transition hover:text-red-700 disabled:opacity-50"
+                        className="text-sm font-bold text-red-600 hover:text-red-800 disabled:opacity-50"
                       >
-                        {isWorking ? "Removing..." : "Remove"}
+                        {isWorking ? "Removing…" : "Remove"}
                       </button>
                     </div>
                   ) : null}
@@ -223,7 +232,7 @@ export default function HotelMediaManager({
         </div>
       ) : (
         <div className="mt-6 border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-sm text-slate-600">
-          No images have been uploaded for this hotel.
+          No images have been uploaded yet.
         </div>
       )}
 
@@ -239,7 +248,7 @@ export default function HotelMediaManager({
                 accept="image/jpeg,image/png,image/webp"
                 multiple
                 onChange={handleFileChange}
-                className="mt-2 block w-full text-sm text-slate-600 file:mr-4 file:border-0 file:bg-slate-950 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
+                className="mt-2 block w-full text-sm text-slate-600"
               />
             </label>
 
@@ -250,13 +259,13 @@ export default function HotelMediaManager({
               <input
                 value={altText}
                 onChange={(event) => setAltText(event.target.value)}
-                placeholder={`${hotelName} interior`}
-                className="mt-2 h-12 w-full border border-slate-300 px-4 text-sm text-slate-950 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                placeholder={`${propertyName} interior`}
+                className="mt-2 h-12 w-full border border-slate-300 px-4 text-sm text-slate-950 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
               />
             </label>
 
-            {selectedFiles.length > 0 ? (
-              <p className="text-sm font-medium text-slate-600">
+            {selectedFiles.length ? (
+              <p className="text-sm text-slate-600">
                 Selected: {selectedFiles.map((file) => file.name).join(", ")}
               </p>
             ) : null}
@@ -264,10 +273,10 @@ export default function HotelMediaManager({
             <button
               type="button"
               onClick={() => void uploadImages()}
-              disabled={isUploading || selectedFiles.length === 0}
-              className="h-11 w-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              disabled={isUploading || !selectedFiles.length}
+              className="h-11 w-full bg-slate-950 px-5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
-              {isUploading ? "Uploading..." : "Upload images"}
+              {isUploading ? "Uploading…" : "Upload images"}
             </button>
           </div>
         </div>

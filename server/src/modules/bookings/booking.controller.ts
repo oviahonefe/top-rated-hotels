@@ -5,7 +5,12 @@ import { asyncHandler } from "../../utils/async-handler.js";
 import {
   sendBookingCancelledEmail,
   sendBookingConfirmedEmail,
+  sendPaymentSubmittedForReviewEmail,
 } from "./booking-email.service.js";
+import {
+  deletePaymentReceipt,
+  uploadPaymentReceipt,
+} from "./payment-receipt.service.js";
 import {
   cancelUserBooking,
   createBooking,
@@ -17,9 +22,10 @@ import {
   submitPaymentReference,
 } from "./booking.service.js";
 import { adminBookingQuerySchema } from "./admin-booking.validation.js";
-import type {
-  CreateBookingInput,
-  CreateBookingQuoteInput,
+import {
+  submitPaymentSchema,
+  type CreateBookingInput,
+  type CreateBookingQuoteInput,
 } from "./booking.validation.js";
 
 function getAuthenticatedUserId(req: Request) {
@@ -126,19 +132,43 @@ export const cancelMyBookingController: RequestHandler =
 
 export const submitPaymentController: RequestHandler =
   asyncHandler(async (req, res) => {
-    const booking = await submitPaymentReference(
-      getAuthenticatedUserId(req),
-      getBookingReference(req),
-      req.body as {
-        transactionReference: string;
-        note?: string;
-      },
+    const receiptFile = req.file;
+
+    if (!receiptFile) {
+      throw new AppError(
+        "Upload a payment receipt before submitting payment.",
+        400,
+      );
+    }
+
+    const bookingReference = getBookingReference(req);
+    const paymentInput = submitPaymentSchema.parse(req.body);
+
+    const receipt = await uploadPaymentReceipt(
+      receiptFile,
+      bookingReference,
     );
 
-    res.status(200).json({
-      success: true,
-      data: booking,
-    });
+    try {
+      const booking = await submitPaymentReference(
+        getAuthenticatedUserId(req),
+        bookingReference,
+        {
+          ...paymentInput,
+          receipt,
+        },
+      );
+
+      void sendPaymentSubmittedForReviewEmail(booking);
+
+      res.status(200).json({
+        success: true,
+        data: booking,
+      });
+    } catch (error) {
+      await deletePaymentReceipt(receipt);
+      throw error;
+    }
   });
 
 export const reviewBookingPaymentController: RequestHandler =

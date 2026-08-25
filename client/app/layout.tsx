@@ -14,7 +14,7 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className="h-full scroll-smooth antialiased">
+    <html lang="en" data-scroll-behavior="smooth">
       <body className="min-h-full bg-background text-foreground">
         <SiteFrame>{children}</SiteFrame>
       </body>

@@ -49,7 +49,7 @@ function DashboardContent() {
   const [error, setError] = useState("");
 
   async function loadDashboard() {
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");

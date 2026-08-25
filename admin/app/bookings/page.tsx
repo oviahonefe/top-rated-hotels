@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import AdminRouteGuard from "@/components/layout/AdminRouteGuard";
 import AdminShell from "@/components/layout/AdminShell";
 import { apiRequest } from "@/lib/api-client";
@@ -77,7 +76,7 @@ function BookingsContent() {
   const [error, setError] = useState("");
 
   async function loadBookings() {
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -136,7 +135,7 @@ function BookingsContent() {
         ? window.prompt("Reason for rejecting this payment:")?.trim()
         : "";
 
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -386,12 +385,11 @@ function BookingsContent() {
                                 </button>
                               </>
                             ) : (
-                              <Link
-                                href={`/bookings/${booking.bookingReference}`}
-                                className="text-sm font-bold text-[#18295d] transition hover:text-[#f47c20]"
-                              >
-                                View
-                              </Link>
+                              <span className="max-w-40 text-right text-xs font-semibold text-slate-500">
+                                {booking.payment.transactionReference
+                                  ? `Payment ref: ${booking.payment.transactionReference}`
+                                  : "No payment reference yet"}
+                              </span>
                             )}
                           </div>
                         </td>

@@ -24,7 +24,7 @@ function HotelsContent() {
   const [error, setError] = useState("");
 
   async function loadHotels() {
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -65,7 +65,7 @@ function HotelsContent() {
       return;
     }
 
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");

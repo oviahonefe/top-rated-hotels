@@ -52,7 +52,8 @@ export default function PropertyReservationCard({
     if (!checkInDate || !checkOutDate) return null;
 
     const query = new URLSearchParams({
-      propertyId: property.slug,
+      propertyId: property.id,
+      slug: property.slug,
       kind: property.kind,
       unitKey: selectedRoomId,
       checkInDate,
@@ -65,6 +66,7 @@ export default function PropertyReservationCard({
     checkInDate,
     checkOutDate,
     guestCount,
+    property.id,
     property.kind,
     property.slug,
     selectedRoomId,

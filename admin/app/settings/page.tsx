@@ -56,7 +56,7 @@ function PaymentMethodsContent() {
   const [error, setError] = useState("");
 
   async function loadMethods() {
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -89,7 +89,7 @@ function PaymentMethodsContent() {
   }, []);
 
   async function saveMethod(draft: PaymentMethodDraft) {
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");
@@ -149,7 +149,7 @@ function PaymentMethodsContent() {
       return;
     }
 
-    const token = authenticatedRequestToken();
+    const token = await authenticatedRequestToken();
 
     if (!token) {
       setError("Your admin session has expired. Please sign in again.");

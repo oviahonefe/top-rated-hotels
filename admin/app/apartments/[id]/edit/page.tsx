@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import AdminRouteGuard from "@/components/layout/AdminRouteGuard";
-import HotelMediaManager from "@/components/hotels/HotelMediaManager";
+import PropertyMediaManager from "@/components/hotels/HotelMediaManager";
 import { apiRequest, ApiClientError } from "@/lib/api-client";
 import type { AdminApartment, PropertyImage } from "@/lib/api-types";
 import { useAdminAuth } from "@/providers/AuthProvider";
@@ -125,10 +125,10 @@ function EditApartmentContent() {
               </div>
             </section>
 
-            <HotelMediaManager
+            <PropertyMediaManager
               propertyKind="apartments"
-              hotelId={apartment._id}
-              hotelName={apartment.name}
+              propertyId={apartment._id}
+              propertyName={apartment.name}
               images={apartment.images}
               onImagesUpdated={updateImages}
             />

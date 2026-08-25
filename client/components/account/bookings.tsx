@@ -20,7 +20,9 @@ export default function MyBookingsPage() {
       </section>
 
       <SiteContainer className="py-10 sm:py-12 lg:py-16">
-        <AccountGate>{() => <BookingHistory />}</AccountGate>
+        <AccountGate>
+          <BookingHistory />
+        </AccountGate>
       </SiteContainer>
     </main>
   );

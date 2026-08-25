@@ -40,6 +40,15 @@ export type BookingPaymentDetail = {
   value: string;
 };
 
+export type BookingPaymentReceipt = {
+  url: string;
+  publicId: string;
+  resourceType: "image" | "raw";
+  originalFilename: string;
+  mimeType: string;
+  uploadedAt: Date;
+};
+
 export type BookingPayment = {
   methodId: Types.ObjectId;
   methodName: string;
@@ -49,6 +58,7 @@ export type BookingPayment = {
   details: BookingPaymentDetail[];
   status: PaymentStatus;
   transactionReference?: string;
+  receipt?: BookingPaymentReceipt;
   submittedAt?: Date;
   reviewedBy?: Types.ObjectId;
   reviewedAt?: Date;
@@ -102,6 +112,42 @@ const bookingPaymentDetailSchema =
         type: String,
         required: true,
         trim: true,
+      },
+    },
+    { _id: false },
+  );
+
+const bookingPaymentReceiptSchema =
+  new Schema<BookingPaymentReceipt>(
+    {
+      url: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      publicId: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      resourceType: {
+        type: String,
+        enum: ["image", "raw"],
+        required: true,
+      },
+      originalFilename: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      mimeType: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      uploadedAt: {
+        type: Date,
+        required: true,
       },
     },
     { _id: false },
@@ -266,6 +312,10 @@ const bookingSchema = new Schema<Booking>(
       transactionReference: {
         type: String,
         trim: true,
+      },
+      receipt: {
+        type: bookingPaymentReceiptSchema,
+        required: false,
       },
       submittedAt: {
         type: Date,

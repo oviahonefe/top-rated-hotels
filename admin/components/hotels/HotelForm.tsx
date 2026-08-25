@@ -529,10 +529,16 @@ function TextArea({
       <textarea
         name={name}
         required={required}
+        minLength={name === "description" ? 20 : undefined}
         rows={6}
         placeholder={placeholder}
         className="mt-2 w-full resize-y border border-slate-300 px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
       />
+      {name === "description" ? (
+        <span className="mt-2 block text-xs text-slate-500">
+          Minimum 20 characters.
+        </span>
+      ) : null}
     </label>
   );
 }

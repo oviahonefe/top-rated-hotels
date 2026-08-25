@@ -15,6 +15,9 @@ import { getEnabledPaymentMethod } from "../payments/payment-method.service.js";
 import { env } from "../../config/env.js";
 import { AppError } from "../../utils/app-error.js";
 import {
+  deletePaymentReceipt,
+} from "./payment-receipt.service.js";
+import {
   BookingModel,
   type BookingDocument,
 } from "./booking.model.js";
@@ -382,6 +385,14 @@ export async function submitPaymentReference(
   input: {
     transactionReference: string;
     note?: string;
+    receipt: {
+      url: string;
+      publicId: string;
+      resourceType: "image" | "raw";
+      originalFilename: string;
+      mimeType: string;
+      uploadedAt: Date;
+    };
   },
 ) {
   const booking = await BookingModel.findOne({
@@ -417,13 +428,22 @@ export async function submitPaymentReference(
     );
   }
 
+  const previousReceipt = booking.payment.receipt;
+
   booking.payment.status = "submitted";
   booking.payment.transactionReference =
     input.transactionReference.trim();
+  booking.payment.receipt = input.receipt;
   booking.payment.submittedAt = new Date();
   booking.payment.reviewNote = input.note?.trim();
 
-  return booking.save();
+  const savedBooking = await booking.save();
+
+  if (previousReceipt) {
+    void deletePaymentReceipt(previousReceipt);
+  }
+
+  return savedBooking;
 }
 
 export async function reviewBookingPayment(
