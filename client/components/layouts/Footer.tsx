@@ -26,7 +26,7 @@ export default function Footer() {
         <div className="md:text-right">
           <div className="flex flex-wrap gap-4 text-sm font-semibold text-white md:justify-end">
             {footerLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-accent-light">
+              <Link key={link.href} href={link.href} className="hover:text-accent">
                 {link.label}
               </Link>
             ))}

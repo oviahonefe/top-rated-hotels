@@ -32,9 +32,9 @@ export default function CityMarkets() {
                 <p className="text-sm font-semibold text-accent-light">
                   {market.country}
                 </p>
-                <h3 className="mt-1 text-2xl font-extrabold text-white">
+                <h6 className="mt-1 text-2xl font-extrabold text-white">
                   {market.city}
-                </h3>
+                </h6>
                 <p className="mt-2 text-sm font-semibold text-white/75">
                   {market.stays}
                 </p>

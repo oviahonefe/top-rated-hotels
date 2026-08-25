@@ -80,7 +80,7 @@ export default function ContactForm() {
 
       <button
         type="submit"
-        className="h-12 rounded-full bg-primary px-6 text-sm font-semibold text-white transition hover:bg-primary-dark"
+        className="h-12 rounded-full bg-accent px-6 text-sm font-semibold text-white transition hover:bg-accent-dark"
       >
         Send message
       </button>

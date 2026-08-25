@@ -150,7 +150,7 @@ export default function MyBookingsPage() {
 
                   <Link
                     href={upcomingBooking.href}
-                    className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-dark"
+                    className="inline-flex h-11 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-white transition hover:bg-accent-dark"
                   >
                     View booking details
                   </Link>

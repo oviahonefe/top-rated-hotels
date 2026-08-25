@@ -282,3 +282,56 @@ export const apartments: Apartment[] = [
     guests: 4,
   },
 ];
+export type GuestReview = {
+  id: string;
+  guestName: string;
+  guestLocation: string;
+  propertyName: string;
+  propertyLocation: string;
+  rating: number;
+  date: string;
+  comment: string;
+  avatar: string;
+};
+
+export const guestReviews: GuestReview[] = [
+  {
+    id: "review-1",
+    guestName: "Amelia R.",
+    guestLocation: "London, United Kingdom",
+    propertyName: "Marina Collection Suites",
+    propertyLocation: "Malaga, Spain",
+    rating: 5,
+    date: "August 2026",
+    comment:
+      "The apartment was exactly as presented. The location made it easy to enjoy Malaga, and the booking process was clear from start to finish.",
+    avatar:
+      "/images/client-4.png",
+  },
+  {
+    id: "review-2",
+    guestName: "Daniel M.",
+    guestLocation: "Dublin, Ireland",
+    propertyName: "Alfama Riverside Lodge",
+    propertyLocation: "Lisbon, Portugal",
+    rating: 5,
+    date: "July 2026",
+    comment:
+      "A genuinely comfortable stay with thoughtful service. The property details were accurate, and we had everything we needed for four nights.",
+    avatar:
+      "/images/client-1.png",
+  },
+  {
+    id: "review-3",
+    guestName: "Sofia K.",
+    guestLocation: "Berlin, Germany",
+    propertyName: "Gran Via Residences",
+    propertyLocation: "Barcelona, Spain",
+    rating: 4.8,
+    date: "June 2026",
+    comment:
+      "Excellent central location and a very clean, well-designed apartment. I would use Top Rated Hotels again for another city break.",
+    avatar:
+      "/images/client-5.png",
+  },
+];

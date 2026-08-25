@@ -70,7 +70,7 @@ export default function ApartmentCard({ apartment }: ApartmentCardProps) {
 
         <Link
           href={`/apartments/${apartment.id}`}
-          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary-dark"
+          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-accent px-4 text-sm font-semibold text-white transition hover:bg-accent-dark"
         >
           View apartment
         </Link>

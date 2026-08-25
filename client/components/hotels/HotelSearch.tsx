@@ -29,7 +29,7 @@ export default function HotelSearch({
 
         <button
           type="submit"
-          className="h-12 rounded-full bg-primary px-7 text-sm font-semibold text-white transition hover:bg-primary-dark"
+          className="h-12 rounded-full bg-accent px-7 text-sm font-semibold text-white transition hover:bg-accent-dark"
         >
           Search stays
         </button>

@@ -40,7 +40,7 @@ export default function HeroSection() {
             premium stays across Malaga and Europe&apos;s most loved cities.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row text-white">
             <Button href="/hotels" variant="accent" size="lg">
               Explore hotels
             </Button>
@@ -87,7 +87,7 @@ export default function HeroSection() {
           <Button
             href="/hotels"
             variant="accent"
-            className="h-12 w-full lg:self-end rounded-lg"
+            className="h-12 w-full lg:self-end rounded-lg text-white"
           >
             Search stays
           </Button>

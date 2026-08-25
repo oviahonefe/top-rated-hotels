@@ -75,8 +75,8 @@ export default function FeaturedHotels() {
 
                 <Button
                   href={`/hotels/${hotel.id}`}
-                  variant="primary"
-                  className="mt-5 w-full"
+                  variant="accent"
+                  className="mt-5 w-full text-white"
                 >
                   View details
                 </Button>
