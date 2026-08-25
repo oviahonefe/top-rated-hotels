@@ -25,18 +25,21 @@ export default async function BookingPage({
 
   if (
     !values.propertyId ||
-    !values.slug ||
     (values.kind !== "hotel" && values.kind !== "apartment")
   ) {
     notFound();
   }
 
+  // New links provide both values. Older links used propertyId as the slug.
+  const propertySlug = values.slug ?? values.propertyId;
+
   const property =
     values.kind === "hotel"
-      ? await getHotelDetail(values.slug)
-      : await getApartmentDetail(values.slug);
+      ? await getHotelDetail(propertySlug)
+      : await getApartmentDetail(propertySlug);
 
-  if (property.id !== values.propertyId) {
+  // For new links, ensure the public slug and protected booking ID match.
+  if (values.slug && property.id !== values.propertyId) {
     notFound();
   }
 
