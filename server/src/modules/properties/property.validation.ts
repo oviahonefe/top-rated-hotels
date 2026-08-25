@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const imageSchema = z.object({
   url: z.url(),
+  publicId: z.string().trim().min(1).optional(),
   alt: z.string().trim().min(1).max(180),
   isPrimary: z.boolean().default(false),
 });
@@ -39,7 +40,7 @@ const sharedPropertySchema = z.object({
     .default("standard"),
   address: addressSchema,
   amenities: z.array(z.string().trim().min(1).max(80)).default([]),
-  images: z.array(imageSchema).max(30).default([]),
+  images: z.array(imageSchema).max(5).default([]),
   featured: z.boolean().default(false),
   searchKeywords: z
     .array(z.string().trim().min(1).max(80))

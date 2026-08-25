@@ -36,6 +36,7 @@ export type PropertyImage = {
   url: string;
   alt: string;
   isPrimary: boolean;
+  publicId?: string;
 };
 
 export type RoomOption = {

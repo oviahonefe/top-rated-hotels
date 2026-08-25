@@ -12,11 +12,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src tests --ext .ts"
+    "lint": "eslint src tests --ext .ts",
+    "admin:promote": "tsx src/scripts/promote-admin.ts"
   },
   "dependencies": {
     "axios": "^1.19.0",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.1",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -27,6 +29,7 @@
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.3",
+    "multer": "^2.2.0",
     "node-cron": "^4.6.0",
     "nodemailer": "^9.0.5",
     "pino": "^10.3.1",
@@ -42,6 +45,7 @@
     "@types/express": "^5.0.6",
     "@types/hpp": "^0.2.7",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
     "@types/node": "^26.3.0",
     "@types/nodemailer": "^8.0.1",
     "@types/supertest": "^7.2.1",

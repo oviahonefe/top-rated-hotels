@@ -2,8 +2,16 @@ import "dotenv/config";
 import { z } from "zod";
 
 const environmentSchema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(5000),
+  PAYMENT_HOLD_MINUTES: z.coerce
+    .number()
+    .int()
+    .min(5)
+    .max(24 * 60)
+    .default(30),
 
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
 
@@ -15,6 +23,10 @@ const environmentSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
+  CLOUDINARY_CLOUD_NAME: z.string().trim().min(1).optional(),
+  CLOUDINARY_API_KEY: z.string().trim().min(1).optional(),
+  CLOUDINARY_API_SECRET: z.string().trim().min(1).optional(),
+
   SMTP_HOST: z.string().min(1),
   SMTP_PORT: z.coerce.number().int().default(465),
   SMTP_SECURE: z.enum(["true", "false"]).transform((value) => value === "true"),
@@ -23,7 +35,9 @@ const environmentSchema = z.object({
   SMTP_FROM_NAME: z.string().min(1).default("Top Rated Hotels"),
   SMTP_FROM_EMAIL: z.string().email(),
 
-  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info")
+  LOG_LEVEL: z
+    .enum(["fatal", "error", "warn", "info", "debug", "trace"])
+    .default("info"),
 });
 
 const parsedEnvironment = environmentSchema.safeParse(process.env);
@@ -31,7 +45,7 @@ const parsedEnvironment = environmentSchema.safeParse(process.env);
 if (!parsedEnvironment.success) {
   console.error(
     "Invalid environment variables:",
-    parsedEnvironment.error.flatten().fieldErrors
+    parsedEnvironment.error.flatten().fieldErrors,
   );
 
   process.exit(1);

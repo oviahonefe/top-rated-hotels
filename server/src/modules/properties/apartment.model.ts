@@ -50,6 +50,10 @@ const imageSchema = new Schema<PropertyImage>(
   {
     url: { type: String, required: true, trim: true },
     alt: { type: String, required: true, trim: true },
+    publicId: {
+      type: String,
+      trim: true,
+    },
     isPrimary: { type: Boolean, default: false },
   },
   { _id: false },

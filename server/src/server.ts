@@ -2,6 +2,7 @@ import { app } from "./app.js";
 import { connectDatabase } from "./config/database.js";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
+import { startBookingExpiryWorker } from "./modules/bookings/booking-expiry.service.js";
 
 async function startServer() {
   await connectDatabase();
@@ -11,6 +12,7 @@ async function startServer() {
       { port: env.PORT },
       "Top Rated Hotels API is running"
     );
+    startBookingExpiryWorker();
   });
 
   const shutdown = (signal: string) => {

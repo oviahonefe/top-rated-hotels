@@ -1,4 +1,9 @@
-import { Schema, model, type HydratedDocument, Types } from "mongoose";
+import {
+  Schema,
+  model,
+  type HydratedDocument,
+  Types,
+} from "mongoose";
 
 import type { PropertyKind } from "../availability/availability.model.js";
 
@@ -10,13 +15,44 @@ export const bookingStatuses = [
   "expired",
 ] as const;
 
-export type BookingStatus = (typeof bookingStatuses)[number];
+export const paymentStatuses = [
+  "awaiting_payment",
+  "submitted",
+  "approved",
+  "rejected",
+] as const;
+
+export type BookingStatus =
+  (typeof bookingStatuses)[number];
+
+export type PaymentStatus =
+  (typeof paymentStatuses)[number];
 
 export type BookingGuest = {
   firstName: string;
   lastName: string;
   email: string;
   phone?: string;
+};
+
+export type BookingPaymentDetail = {
+  label: string;
+  value: string;
+};
+
+export type BookingPayment = {
+  methodId: Types.ObjectId;
+  methodName: string;
+  methodType: "bank_transfer" | "crypto";
+  currency: string;
+  instructions: string;
+  details: BookingPaymentDetail[];
+  status: PaymentStatus;
+  transactionReference?: string;
+  submittedAt?: Date;
+  reviewedBy?: Types.ObjectId;
+  reviewedAt?: Date;
+  reviewNote?: string;
 };
 
 export type BookingPriceSnapshot = {
@@ -43,6 +79,8 @@ export type Booking = {
   guestCount: number;
   guest: BookingGuest;
   price: BookingPriceSnapshot;
+  payment: BookingPayment;
+  paymentDueAt: Date;
   status: BookingStatus;
   cancelledAt?: Date;
   cancellationReason?: string;
@@ -51,6 +89,23 @@ export type Booking = {
 };
 
 export type BookingDocument = HydratedDocument<Booking>;
+
+const bookingPaymentDetailSchema =
+  new Schema<BookingPaymentDetail>(
+    {
+      label: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      value: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+    },
+    { _id: false },
+  );
 
 const bookingSchema = new Schema<Booking>(
   {
@@ -171,6 +226,67 @@ const bookingSchema = new Schema<Booking>(
         required: true,
         min: 1,
       },
+    },
+    payment: {
+      methodId: {
+        type: Schema.Types.ObjectId,
+        ref: "PaymentMethod",
+        required: true,
+      },
+      methodName: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      methodType: {
+        type: String,
+        enum: ["bank_transfer", "crypto"],
+        required: true,
+      },
+      currency: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      instructions: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      details: {
+        type: [bookingPaymentDetailSchema],
+        default: [],
+      },
+      status: {
+        type: String,
+        enum: paymentStatuses,
+        default: "awaiting_payment",
+        index: true,
+      },
+      transactionReference: {
+        type: String,
+        trim: true,
+      },
+      submittedAt: {
+        type: Date,
+      },
+      reviewedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+      reviewedAt: {
+        type: Date,
+      },
+      reviewNote: {
+        type: String,
+        trim: true,
+        maxlength: 1000,
+      },
+    },
+    paymentDueAt: {
+      type: Date,
+      required: true,
+      index: true,
     },
     status: {
       type: String,
