@@ -76,7 +76,7 @@ export default function Navbar() {
                 className={`text-sm font-bold transition ${
                   active(link.href)
                     ? "text-accent"
-                    : "text-secondary hover:text-primary"
+                    : "text-secondary hover:text-accent"
                 }`}
               >
                 {link.label}
@@ -96,8 +96,7 @@ export default function Navbar() {
                   <img
                     src={user.profileImageUrl}
                     alt=""
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
+                    className="h-8 w-8 rounded-full object-cover" />
                 ) : (
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white">
                     {user.firstName[0]}
@@ -129,7 +128,7 @@ export default function Navbar() {
 
               <Link
                 href="/hotels"
-                className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white"
+                className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
               >
                 Find a stay
               </Link>

@@ -150,3 +150,23 @@ h5 {
     transform: translateY(-10px);
   }
 }
+.hero-image-drift {
+  animation: heroImageDrift 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes heroImageDrift {
+  0% {
+    transform: scale(1.03) translate3d(-1%, -0.75%, 0);
+  }
+
+  100% {
+    transform: scale(1.11) translate3d(1.25%, 0.75%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-image-drift {
+    animation: none;
+  }
+}

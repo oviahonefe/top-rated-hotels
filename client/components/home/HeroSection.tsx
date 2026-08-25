@@ -27,7 +27,6 @@ export default function HeroSection() {
       <div className="relative mx-auto grid min-h-[calc(100svh-5rem)] w-full max-w-[82rem] items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_0.86fr] lg:px-8 lg:py-20">
         <div className="max-w-2xl">
           <p className="inline-flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-accent">
-            <span className="h-px w-8 bg-accent" />
             Curated stays across Europe
           </p>
 
