@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { AdminHotel } from "@/lib/api-types";
+import type { AdminApartment } from "@/lib/api-types";
 
-type HotelTableProps = {
-  hotels: AdminHotel[];
+type ApartmentTableProps = {
+  apartments: AdminApartment[];
   isArchivingId: string | null;
-  onArchive: (hotel: AdminHotel) => void;
+  onArchive: (apartment: AdminApartment) => void;
 };
 
 const statusStyles = {
@@ -16,24 +16,27 @@ const statusStyles = {
   archived: "bg-slate-100 text-slate-600",
 };
 
-export default function HotelTable({
-  hotels,
+export default function ApartmentTable({
+  apartments,
   isArchivingId,
   onArchive,
-}: HotelTableProps) {
-  if (hotels.length === 0) {
+}: ApartmentTableProps) {
+  if (apartments.length === 0) {
     return (
       <div className="border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
-        <h2 className="text-xl font-bold text-slate-950">No hotels yet</h2>
+        <h2 className="text-xl font-bold text-slate-950">
+          No apartments yet
+        </h2>
+
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          Create your first hotel listing to make it available for booking.
+          Create your first apartment listing to make it available for booking.
         </p>
 
         <Link
-          href="/hotels/create"
+          href="/apartments/create"
           className="mt-6 inline-flex h-11 items-center justify-center bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
-          Create hotel
+          Create apartment
         </Link>
       </div>
     );
@@ -44,24 +47,24 @@ export default function HotelTable({
       <table className="w-full min-w-[980px] text-left">
         <thead className="border-b border-slate-200 bg-slate-50">
           <tr className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-            <th className="px-5 py-4">Hotel</th>
+            <th className="px-5 py-4">Apartment</th>
             <th className="px-5 py-4">Location</th>
-            <th className="px-5 py-4">Tier</th>
-            <th className="px-5 py-4">Rooms</th>
+            <th className="px-5 py-4">Capacity</th>
+            <th className="px-5 py-4">Nightly rate</th>
             <th className="px-5 py-4">Status</th>
-            <th className="px-5 py-4">Updated</th>
             <th className="px-5 py-4 text-right">Actions</th>
           </tr>
         </thead>
 
         <tbody>
-          {hotels.map((hotel) => {
+          {apartments.map((apartment) => {
             const primaryImage =
-              hotel.images.find((image) => image.isPrimary) ?? hotel.images[0];
+              apartment.images.find((image) => image.isPrimary) ??
+              apartment.images[0];
 
             return (
               <tr
-                key={hotel._id}
+                key={apartment._id}
                 className="border-b border-slate-200 last:border-b-0"
               >
                 <td className="px-5 py-4">
@@ -82,65 +85,60 @@ export default function HotelTable({
                       )}
                     </div>
 
-                    <div className="min-w-0">
-                      <p className="truncate font-bold text-slate-950">
-                        {hotel.name}
+                    <div>
+                      <p className="font-bold text-slate-950">
+                        {apartment.name}
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {hotel.starRating.toFixed(1)} star rating
+                        {apartment.bedrooms} bedrooms · {apartment.bathrooms}{" "}
+                        bathrooms
                       </p>
                     </div>
                   </div>
                 </td>
 
                 <td className="px-5 py-4 text-sm font-medium text-slate-700">
-                  <p>{hotel.address.city}</p>
-                  <p className="mt-1 text-slate-500">{hotel.address.country}</p>
-                </td>
-
-                <td className="px-5 py-4 capitalize text-sm font-semibold text-slate-700">
-                  {hotel.tier}
+                  <p>{apartment.address.city}</p>
+                  <p className="mt-1 text-slate-500">
+                    {apartment.address.country}
+                  </p>
                 </td>
 
                 <td className="px-5 py-4 text-sm font-semibold text-slate-700">
-                  {hotel.rooms.length}
+                  {apartment.maxGuests} guests · {apartment.totalUnits} units
+                </td>
+
+                <td className="px-5 py-4 text-sm font-bold text-slate-950">
+                  ${(apartment.platformNightlyRateCents / 100).toLocaleString()}
                 </td>
 
                 <td className="px-5 py-4">
                   <span
                     className={`inline-flex px-3 py-1 text-xs font-bold capitalize ${
-                      statusStyles[hotel.status]
+                      statusStyles[apartment.status]
                     }`}
                   >
-                    {hotel.status}
+                    {apartment.status}
                   </span>
-                </td>
-
-                <td className="px-5 py-4 text-sm text-slate-600">
-                  {new Intl.DateTimeFormat("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  }).format(new Date(hotel.updatedAt))}
                 </td>
 
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-4">
                     <Link
-                      href={`/hotels/${hotel._id}/edit`}
+                      href={`/apartments/${apartment._id}/edit`}
                       className="text-sm font-bold text-orange-600 transition hover:text-orange-700"
                     >
                       Edit
                     </Link>
 
-                    {hotel.status !== "archived" ? (
+                    {apartment.status !== "archived" ? (
                       <button
                         type="button"
-                        disabled={isArchivingId === hotel._id}
-                        onClick={() => onArchive(hotel)}
+                        disabled={isArchivingId === apartment._id}
+                        onClick={() => onArchive(apartment)}
                         className="text-sm font-bold text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        {isArchivingId === hotel._id
+                        {isArchivingId === apartment._id
                           ? "Archiving..."
                           : "Archive"}
                       </button>
