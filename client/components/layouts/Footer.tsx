@@ -4,7 +4,7 @@ import SiteContainer from "../ui/SiteContainer";
 const footerLinks = [
   { href: "/hotels", label: "Hotels" },
   { href: "/apartments", label: "Apartments" },
-  { href: "/bookings", label: "Bookings" },
+  { href: "account/bookings", label: "Bookings" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -24,7 +24,7 @@ export default function Footer() {
         </div>
 
         <div className="md:text-right">
-          <div className="flex flex-wrap gap-4 text-sm font-semibold text-white/80 md:justify-end">
+          <div className="flex flex-wrap gap-4 text-sm font-semibold text-white md:justify-end">
             {footerLinks.map((link) => (
               <Link key={link.href} href={link.href} className="hover:text-accent-light">
                 {link.label}

@@ -12,7 +12,7 @@ const stats = [
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-x-hidden bg-surface pt-20">
+    <section className="relative bg-surface pt-20">
       <div className="absolute inset-y-0 right-0 hidden w-[58%] lg:block">
         <Image
           src={HERO_IMAGE}
@@ -79,7 +79,7 @@ export default function HeroSection() {
           />
         </div>
 
-        <div className="card relative z-10 grid gap-4 bg-background p-4 shadow-xl sm:grid-cols-2 lg:absolute lg:bottom-0 lg:left-8 lg:right-8 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:p-5">
+        <div className="card relative mb-[-50] z-10 grid gap-4 bg-background p-4 shadow-xl sm:grid-cols-2 lg:absolute lg:bottom-0 lg:left-8 lg:right-8 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:p-5">
           <SearchField label="Where" value="Malaga, Spain" />
           <SearchField label="Stay type" value="Apartment hotel" />
           <SearchField label="Budget" value="$30,000 / 4 days" />

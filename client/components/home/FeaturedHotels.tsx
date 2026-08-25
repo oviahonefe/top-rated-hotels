@@ -5,7 +5,7 @@ import SiteContainer from "@/components/ui/SiteContainer";
 
 export default function FeaturedHotels() {
   return (
-    <section className="bg-background py-20 lg:pt-32">
+    <section className="bg-background py-20 lg:pt-48">
       <SiteContainer>
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">

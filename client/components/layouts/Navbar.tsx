@@ -9,8 +9,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/hotels", label: "Hotels" },
   { href: "/apartments", label: "Apartments" },
-  { href: "/destinations", label: "Destinations" },
-  { href: "/bookings", label: "My bookings" },
+  { href: "/account/bookings", label: "My bookings" },
 ];
 
 export default function Navbar() {
