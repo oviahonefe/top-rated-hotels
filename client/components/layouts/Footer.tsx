@@ -4,7 +4,7 @@ import SiteContainer from "../ui/SiteContainer";
 const footerLinks = [
   { href: "/hotels", label: "Hotels" },
   { href: "/apartments", label: "Apartments" },
-  { href: "account/bookings", label: "Bookings" },
+  { href: "/account/bookings", label: "Bookings" },
   { href: "/contact", label: "Contact" },
 ];
 

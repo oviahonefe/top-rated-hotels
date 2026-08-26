@@ -9,6 +9,7 @@ import {
 type Props = {
   searchParams: Promise<{
     propertyId?: string;
+    slug?: string;
     kind?: "hotel" | "apartment";
     unitKey?: string;
     checkInDate?: string;
@@ -27,10 +28,16 @@ export default async function BookingPage({ searchParams }: Props) {
     notFound();
   }
 
-  const property =
-    values.kind === "hotel"
-      ? await getHotelDetail(values.propertyId)
-      : await getApartmentDetail(values.propertyId);
+  const propertySlug = values.slug ?? values.propertyId;
+
+const property =
+  values.kind === "hotel"
+    ? await getHotelDetail(propertySlug)
+    : await getApartmentDetail(propertySlug);
+
+if (values.slug && property.id !== values.propertyId) {
+  notFound();
+}
 
   return (
     <main className="min-h-screen bg-surface pt-20">
