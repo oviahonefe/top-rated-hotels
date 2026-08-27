@@ -68,35 +68,56 @@ export default async function ApartmentDetailsPage({
         </nav>
       </SiteContainer>
 
-      <SiteContainer>
-        <div className="relative min-h-[360px] overflow-hidden border border-border sm:min-h-[500px]">
-          {primaryImage ? (
-            <Image
-              src={primaryImage.url}
-              alt={primaryImage.alt || apartment.name}
-              fill
-              priority
-              sizes="(max-width: 1320px) 100vw, 82rem"
-              className="object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-surface" />
-          )}
-
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-6 sm:p-8">
-            <p className="text-sm font-bold text-white/85">
-              {apartment.address.city}, {apartment.address.country}
-            </p>
-            <div className="mt-5">
-              <FavoriteButton
-                propertyId={apartment.id}
-                propertyKind="apartment"
+            <SiteContainer>
+        <div className="grid gap-2 sm:grid-cols-4 sm:grid-rows-2 sm:h-[500px]">
+          <div className="relative min-h-[300px] overflow-hidden border border-border sm:col-span-2 sm:row-span-2 sm:min-h-0">
+            {primaryImage ? (
+              <Image
+                src={primaryImage.url}
+                alt={primaryImage.alt || apartment.name}
+                fill
+                priority
+                sizes="(max-width: 1320px) 100vw, 41rem"
+                className="object-cover"
               />
+            ) : (
+              <div className="absolute inset-0 bg-surface" />
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-6 sm:p-8">
+              <p className="text-sm font-bold text-accent">
+                {apartment.address.city}, {apartment.address.country}
+              </p>
+              <div className="mt-5">
+                <FavoriteButton
+                  propertyId={apartment.id}
+                  propertyKind="apartment"
+                />
+              </div>
+              <h6 className="mt-2 text-3xl font-extrabold text-white sm:text-5xl">
+                {apartment.name}
+              </h6>
             </div>
-            <h1 className="mt-2 text-3xl font-extrabold text-white sm:text-5xl">
-              {apartment.name}
-            </h1>
           </div>
+
+          {apartment.images
+            .filter((image) => image.url !== primaryImage?.url)
+            .slice(0, 4)
+            .map((image, index) => (
+              <div
+                key={image.url}
+                className="relative hidden min-h-[150px] overflow-hidden border border-border sm:block sm:min-h-0"
+              >
+                <Image
+                  src={image.url}
+                  alt={image.alt || apartment.name}
+                  fill
+                  sizes="20rem"
+                  className="object-cover"
+                  priority={index === 0}
+                />
+              </div>
+            ))}
         </div>
       </SiteContainer>
 
