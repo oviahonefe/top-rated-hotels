@@ -156,7 +156,7 @@ export default function ContactPage() {
 
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
               Select the topic that best matches your request, then provide as
-              much detail as you can. This helps the right team understand your
+              much detail as you can, this helps the right team understand your
               enquiry from the start.
             </p>
 
