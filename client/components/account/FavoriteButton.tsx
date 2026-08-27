@@ -72,7 +72,7 @@ export default function FavoriteButton({
         className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
           isFavorite
             ? "border-accent bg-accent text-white"
-            : "border-primary text-primary hover:bg-primary hover:text-white"
+            : "border-primary text-white hover:bg-primary hover:text-white"
         }`}
       >
         {isFavorite ? "Saved to favourites" : "Save stay"}
