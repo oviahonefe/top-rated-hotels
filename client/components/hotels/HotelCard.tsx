@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Star } from "lucide-react";
 
 import {
   formatUsd,
@@ -36,11 +37,20 @@ export default function HotelCard({
           {hotel.tier}
         </span>
 
-        {hotel.starRating ? (
-          <span className="absolute right-3 top-3 bg-primary px-3 py-1.5 text-xs font-extrabold text-white shadow-sm">
-            {hotel.starRating.toFixed(1)} star
-          </span>
-        ) : null}
+     {hotel.starRating ? (
+  <span
+    aria-label={`${hotel.starRating.toFixed(1)} out of 5 rating`}
+    className="absolute right-3 top-3 inline-flex items-center gap-1.5 bg-background/95 px-3 py-1.5 text-xs font-extrabold text-primary shadow-lg ring-1 ring-white/70 backdrop-blur"
+  >
+    <Star
+      aria-hidden="true"
+      size={14}
+      strokeWidth={2.5}
+      className="fill-accent text-accent"
+    />
+    {hotel.starRating.toFixed(1)}
+  </span>
+) : null}
       </div>
 
       <div className="p-5">

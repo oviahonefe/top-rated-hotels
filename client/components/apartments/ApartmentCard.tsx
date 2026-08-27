@@ -36,9 +36,9 @@ export default function ApartmentCard({
           {apartment.tier}
         </span>
 
-        <span className="absolute right-3 top-3 bg-primary px-3 py-1.5 text-xs font-extrabold text-white shadow-sm">
-          Verified stay
-        </span>
+       <span className="absolute right-3 top-3 text-xs font-extrabold tracking-[0.14em] text-emerald-200 drop-shadow-[0_0_6px_rgba(52,211,153,0.45)] animate-pulse">
+          Verified
+       </span>
       </div>
 
       <div className="p-5">

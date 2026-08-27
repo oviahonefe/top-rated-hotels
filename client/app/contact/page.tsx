@@ -39,12 +39,6 @@ const contactOptions = [
     href: "mailto:support@topratedhotels.es",
     description: "For property owners and managers interested in listing an apartment hotel, villa, or lodge.",
   },
-  {
-    title: "Phone support",
-    value: "+34 951 000 000",
-    href: "tel:+34951000000",
-    description: "Available Monday to Friday, 9:00 AM to 6:00 PM CET.",
-  },
 ];
 
 export default function ContactPage() {
@@ -146,10 +140,7 @@ export default function ContactPage() {
               </h3>
 
               <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Once you submit the form, your enquiry is recorded with the
-                relevant support category. When we connect the backend, your
-                message will be delivered securely to the appropriate support
-                workflow.
+                Once you send your enquiry, our team will review your message and make sure it reaches the right person. We’ll get back to you with the information or assistance you need.
               </p>
             </div>
           </section>

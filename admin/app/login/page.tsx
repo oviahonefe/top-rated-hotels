@@ -81,7 +81,6 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 flex items-center gap-3 text-sm font-semibold text-blue-100">
-          <span className="h-px w-10 bg-orange-300" />
           Top Rated Apartment Hotels
         </div>
       </section>

@@ -14,7 +14,7 @@ const steps = [
   {
     title: "Checkout",
     description:
-      "Choose an admin-enabled payment method and complete a secure reservation.",
+      "Complete your booking securely and get ready for your stay.",
   },
 ];
 
@@ -28,12 +28,10 @@ export default function BookingFlow() {
             Booking experience
           </p>
           <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">
-            Designed for a real marketplace workflow
+            Find a place that feels right
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
-            The frontend is being arranged so the backend and admin dashboard
-            can plug in cleanly later: listings, availability, booking status,
-            and payment methods all have a natural place.
+            Explore stays, compare your options, check availability, and book with confidence. Everything you need to make the right choice is right at your fingertips.
           </p>
         </div>
 

@@ -91,9 +91,9 @@ export default function CityMarkets() {
                     {city.country}
                   </p>
 
-                  <h3 className="mt-1 text-2xl font-extrabold">
+                  <h6 className="mt-1 text-2xl font-extrabold">
                     {city.city}
-                  </h3>
+                  </h6>
 
                   <p className="mt-2 text-sm font-semibold text-white/75">
                     {city.properties.length} published stay
